@@ -92,6 +92,7 @@ class DashboardController:
         self.data_model = data_model
         self.file_upload_component = FileUploadComponent("upload-data")
         self.data_table_component = DataTableComponent("data-table")
+        print(self.file_upload_component, self.data_table_component)
 
     def update_table(self, contents, filename):
         if contents is not None:
@@ -146,11 +147,11 @@ class DashboardApp:
                                     [
                                         dbc.Col(
                                             [
-                                                self.file_upload_component.render(),
+                                                self.controller.file_upload_component.render(),
                                                 html.Div(
                                                     id="table-container",
                                                     children=[
-                                                        self.data_table_component.render()
+                                                        self.controller.data_table_component.render()
                                                     ],
                                                 ),
                                             ],
