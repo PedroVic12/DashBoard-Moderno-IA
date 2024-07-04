@@ -1,30 +1,149 @@
+import base64
+import io
+
 import dash
-from dash import dcc
-from dash import html
 import dash_ag_grid as dag
+import dash_bootstrap_components as dbc
+import dash_material_components as dmc
 import pandas as pd
 import plotly.express as px
-import dash_bootstrap_components as dbc
-import dash_material_components as dmc  # Importe o MUI
+from dash import dcc, html, Input, Output, State
 
 
-# Criando a classe do backend
-class Backend:
+# Modelo
+class DataModel:
     def __init__(self):
-        self.app = dash.Dash(
-            __name__, external_stylesheets=[dbc.themes.CYBORG]
-        )  # Use o tema MATERIAL do dbc
-        self.df = pd.read_csv(
-            "https://raw.githubusercontent.com/Coding-with-Adam/Dash-by-Plotly/master/LangChain/Graph-Insights/domain-notable-ai-system.csv"
+        self.df = pd.DataFrame()
+
+    def load_data(self, contents, filename):
+        content_type, content_string = contents.split(",")
+        decoded = base64.b64decode(content_string)
+        try:
+            if "csv" in filename:
+                self.df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+            elif "xls" in filename:
+                self.df = pd.read_excel(io.BytesIO(decoded))
+            else:
+                return False
+        except Exception as error:
+            print(error)
+            return False
+        return True
+
+
+# Visão
+class FileUploadComponent:
+    def __init__(self, id):
+        self.id = id
+
+    def render(self):
+        return html.Div(
+            [
+                dcc.Upload(
+                    id=self.id,
+                    children=html.Div(
+                        ["Arraste e solte ou ", html.A("selecione os arquivos")]
+                    ),
+                    style={
+                        "width": "100%",
+                        "height": "60px",
+                        "lineHeight": "60px",
+                        "borderWidth": "1px",
+                        "borderStyle": "dashed",
+                        "borderRadius": "5px",
+                        "textAlign": "center",
+                        "margin": "10px",
+                    },
+                    multiple=False,  # Permitir apenas um arquivo por vez
+                ),
+                html.Div(id=f"{self.id}-output"),
+            ]
         )
+
+
+class DataTableComponent:
+    def __init__(self, id):
+        self.id = id
+
+    def render(self, df=None):
+        if df is None:
+            df = pd.DataFrame()
+        return html.Div(
+            [
+                dag.AgGrid(
+                    id=self.id,
+                    rowData=df.to_dict("records"),
+                    columnDefs=[{"field": i} for i in df.columns],
+                    defaultColDef={
+                        "filter": True,
+                        "sortable": True,
+                        "flex": 1,
+                        "editable": True,
+                        "floatingFilter": True,
+                    },
+                    style={"height": "300px"},  # Definir altura da tabela
+                ),
+            ]
+        )
+
+
+# Controlador
+class DashboardController:
+    def __init__(self, data_model):
+        self.data_model = data_model
+        self.file_upload_component = FileUploadComponent("upload-data")
+        self.data_table_component = DataTableComponent("data-table")
+
+    def update_table(self, contents, filename):
+        if contents is not None:
+            if self.data_model.load_data(contents, filename):
+                return self.data_table_component.render(self.data_model.df)
+            else:
+                return html.Div("Erro ao carregar o arquivo. Verifique o formato.")
+        else:
+            return html.Div(
+                "Nenhum arquivo selecionado. Arraste e solte ou selecione um arquivo CSV ou Excel."
+            )
+
+
+# Aplicação Dash
+class DashboardApp:
+    def __init__(self):
+        self.data_model = DataModel()
+        self.controller = DashboardController(self.data_model)
         self.chart_types = ["Bar Chart", "Line Chart", "Scatter Chart"]
 
-        self.app.layout = dmc.Dashboard(  # Use o componente Dashboard do MUI
+        self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+
+        # Criando componentes do menu drawer
+        self.menu_items = [
+            dbc.NavLink("Página Inicial", href="#", active="exact"),
+            dbc.NavLink("Sobre", href="#", active="exact"),
+            dbc.NavLink("Contato", href="#", active="exact"),
+        ]
+        self.navbar = dbc.NavbarSimple(
             children=[
-                dmc.NavBar(
-                    title="Interactive Data Visualization"
-                ),  # Barra de navegação
+                dbc.NavItem(dbc.NavLink("Menu", id="open-drawer")),
+            ],
+            brand="Interactive Data Visualization",
+            brand_href="#",
+            color="dark",
+            dark=True,
+            fluid=True,
+        )
+        self.drawer = dmc.Drawer(
+            [dbc.Nav(self.menu_items, vertical=True)],
+            id="menu-drawer",
+            is_open=False,
+        )
+
+        self.app.layout = html.Div(
+            [
+                dcc.Location(id="url", refresh=False),
+                self.navbar,
+                self.drawer,
                 dmc.Page(
+                    id="page-content",
                     children=[
                         dmc.Section(
                             children=[
@@ -47,34 +166,23 @@ class Backend:
                                             md=3,
                                         ),
                                     ],
-                                    className="mb-4",  # Adicione uma margem inferior
+                                    className="mb-4",
                                 ),
                                 dbc.Row(
                                     [
                                         dbc.Col(
                                             [
-                                                dag.AgGrid(
-                                                    id="data-table",
-                                                    columnDefs=[
-                                                        {
-                                                            "headerName": "Year",
-                                                            "field": "Year",
-                                                        },
-                                                        {
-                                                            "headerName": "Annual number of AI systems by domain",
-                                                            "field": "Annual number of AI systems by domain",
-                                                        },
-                                                        {
-                                                            "headerName": "Entity",
-                                                            "field": "Entity",
-                                                        },
+                                                self.controller.file_upload_component.render(),
+                                                html.Div(
+                                                    id="table-container",
+                                                    children=[
+                                                        self.controller.data_table_component.render()
                                                     ],
-                                                    rowData=self.df.to_dict("records"),
-                                                    dashGridOptions={
-                                                        "pagination": True,
-                                                        "paginationPageSize": 10,
-                                                    },
-                                                )
+                                                    style={
+                                                        "height": "500px",
+                                                        "overflow": "auto",
+                                                    },  # Adicionando barra de rolagem
+                                                ),
                                             ],
                                             md=6,
                                         ),
@@ -88,7 +196,12 @@ class Backend:
                                                     ],
                                                     value="Bar Chart",
                                                 ),
-                                                dcc.Graph(id="interactive-graph"),
+                                                dcc.Graph(
+                                                    id="interactive-graph",
+                                                    style={
+                                                        "height": "500px",
+                                                    },  # Definindo altura do gráfico
+                                                ),
                                                 html.Div(id="insights"),
                                             ],
                                             md=6,
@@ -97,18 +210,26 @@ class Backend:
                                 ),
                             ],
                             cards=[
-                                {
-                                    "title": "Card 1a",
-                                },
+                                {"title": "Card 1a"},
                                 {"title": "Card 1b"},
                             ],
                         )
-                    ]
+                    ],
+                    style={"overflow": "auto"},  # Adicionando barra de rolagem à página
                 ),
             ]
         )
 
-        # Callback para atualizar o gráfico e os insights
+        @self.app.callback(
+            Output("table-container", "children"),
+            [
+                Input("upload-data", "contents"),
+                Input("upload-data", "filename"),
+            ],
+        )
+        def display_output(contents, filename):
+            return self.controller.update_table(contents, filename)
+
         @self.app.callback(
             [
                 dash.Output("interactive-graph", "figure"),
@@ -121,6 +242,17 @@ class Backend:
             insights = self.generate_insights(selected_chart)
             return fig, insights
 
+        # Callback para abrir/fechar o menu drawer
+        @self.app.callback(
+            Output("menu-drawer", "is_open"),
+            [Input("open-drawer", "n_clicks")],
+            [State("menu-drawer", "is_open")],
+        )
+        def toggle_drawer(n, is_open):
+            if n:
+                return not is_open
+            return is_open
+
     def create_card(self, title, content):
         return dbc.Card(
             dbc.CardBody(
@@ -132,27 +264,41 @@ class Backend:
         )
 
     def create_chart(self, selected_chart):
+        if self.data_model.df.empty:
+            return {}
         fig = None
         if selected_chart == "Bar Chart":
             fig = px.bar(
-                self.df,
-                x="Year",
-                y="Annual number of AI systems by domain",
-                color="Entity",
+                self.data_model.df,
+                x=self.data_model.df.columns[0],
+                y=self.data_model.df.columns[1],
+                color=(
+                    self.data_model.df.columns[2]
+                    if len(self.data_model.df.columns) > 2
+                    else None
+                ),
             )
         elif selected_chart == "Line Chart":
             fig = px.line(
-                self.df,
-                x="Year",
-                y="Annual number of AI systems by domain",
-                color="Entity",
+                self.data_model.df,
+                x=self.data_model.df.columns[0],
+                y=self.data_model.df.columns[1],
+                color=(
+                    self.data_model.df.columns[2]
+                    if len(self.data_model.df.columns) > 2
+                    else None
+                ),
             )
         elif selected_chart == "Scatter Chart":
             fig = px.scatter(
-                self.df,
-                x="Year",
-                y="Annual number of AI systems by domain",
-                color="Entity",
+                self.data_model.df,
+                x=self.data_model.df.columns[0],
+                y=self.data_model.df.columns[1],
+                color=(
+                    self.data_model.df.columns[2]
+                    if len(self.data_model.df.columns) > 2
+                    else None
+                ),
             )
 
         fig.update_layout(
@@ -174,5 +320,5 @@ class Backend:
 
 # Iniciar o backend
 if __name__ == "__main__":
-    backend = Backend()
-    backend.run()
+    app = DashboardApp()
+    app.run()

@@ -160,6 +160,8 @@ def get_valor_membro_data():
 
 
 dashboard = DashboardApp()
-server = dashboard.app.server
+
+app = dashboard.app
+server = app.server
 
 dashboard.run()
