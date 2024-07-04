@@ -1,0 +1,11 @@
+include pv_dash/pv_dash.min.js
+include pv_dash/pv_dash.min.js.map
+include pv_dash/async-*.js
+include pv_dash/async-*.js.map
+include pv_dash/*-shared.js
+include pv_dash/*-shared.js.map
+include pv_dash/metadata.json
+include pv_dash/package-info.json
+include README.md
+include LICENSE
+include package.json

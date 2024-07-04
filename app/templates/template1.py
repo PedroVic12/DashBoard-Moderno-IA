@@ -73,14 +73,22 @@ class DataTableComponent:
                     id=self.id,
                     rowData=df.to_dict("records"),
                     columnDefs=[{"field": i} for i in df.columns],
+                    dashGridOptions={
+                        "animateRows": False,
+                        "paginationPageSizeSelector": False,
+                        "includeHiddenColumnsInQuickFilter": True,
+                    },
                     defaultColDef={
+                        "resizeable": False,
                         "filter": True,
                         "sortable": True,
                         "flex": 1,
                         "editable": True,
+                        "cellDataType": False,
                         "floatingFilter": True,
+                        "useValueFormatterForExport": False,
                     },
-                    style={"height": "300px"},  # Definir altura da tabela
+                    style={"height": "900px"},  # Definir altura da tabela
                 ),
             ]
         )
