@@ -159,8 +159,7 @@ def get_valor_membro_data():
     ]
 
 
-if __name__ == "__main__":
-    dashboard = DashboardApp()
-    server = dashboard.app.server
+dashboard = DashboardApp()
+server = dashboard.app.server
 
-    dashboard.run()
+dashboard.run()
