@@ -123,7 +123,9 @@ class DashboardApp:
         ]
         self.navbar = dbc.NavbarSimple(
             children=[
-                dbc.NavItem(dbc.NavLink("Menu", id="open-drawer")),
+                dbc.NavItem(dbc.NavLink("Menu", id="open")),
+                dbc.NavItem(dbc.NavLink("Sair", id="logout")),
+                # self.menu_items,
             ],
             brand="Interactive Data Visualization",
             brand_href="#",
@@ -131,17 +133,17 @@ class DashboardApp:
             dark=True,
             fluid=True,
         )
-        self.drawer = dmc.Drawer(
-            [dbc.Nav(self.menu_items, vertical=True)],
-            id="menu-drawer",
-            is_open=False,
-        )
+        # self.drawer = dmc.Drawer(
+        #     [dbc.Nav(self.menu_items, vertical=True)],
+        #     id="menu-drawer",
+        #     is_open=False,
+        # )
 
         self.app.layout = html.Div(
             [
                 dcc.Location(id="url", refresh=False),
                 self.navbar,
-                self.drawer,
+                # self.drawer,
                 dmc.Page(
                     id="page-content",
                     children=[
@@ -215,7 +217,7 @@ class DashboardApp:
                             ],
                         )
                     ],
-                    style={"overflow": "auto"},  # Adicionando barra de rolagem à página
+                    # style={"overflow": "auto"},  # Adicionando barra de rolagem à página
                 ),
             ]
         )
@@ -242,16 +244,16 @@ class DashboardApp:
             insights = self.generate_insights(selected_chart)
             return fig, insights
 
-        # Callback para abrir/fechar o menu drawer
-        @self.app.callback(
-            Output("menu-drawer", "is_open"),
-            [Input("open-drawer", "n_clicks")],
-            [State("menu-drawer", "is_open")],
-        )
-        def toggle_drawer(n, is_open):
-            if n:
-                return not is_open
-            return is_open
+        # # Callback para abrir/fechar o menu drawer
+        # @self.app.callback(
+        #     Output("menu-drawer", "is_open"),
+        #     [Input("open-drawer", "n_clicks")],
+        #     [State("menu-drawer", "is_open")],
+        # )
+        # def toggle_drawer(n, is_open):
+        #     if n:
+        #         return not is_open
+        #     return is_open
 
     def create_card(self, title, content):
         return dbc.Card(

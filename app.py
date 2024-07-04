@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output
 import plotly.graph_objs as go
 import requests
 import dash_bootstrap_components as dbc
+import os
 
 
 class GraphUpdater:
@@ -135,7 +136,9 @@ class DashboardApp:
             )
 
     def run(self):
-        self.app.run_server(debug=True)
+        self.app.run_server(
+            debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 8080))
+        )
 
 
 def get_leads_data():
