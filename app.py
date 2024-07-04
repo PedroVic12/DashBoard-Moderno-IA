@@ -4,6 +4,9 @@ import plotly.graph_objs as go
 import requests
 import dash_bootstrap_components as dbc
 
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+server = app.server
+
 
 class GraphUpdater:
     def __init__(self, graph_id, title, x_label, y_label):
@@ -30,8 +33,8 @@ class GraphUpdater:
 
 class DashboardApp:
     def __init__(self):
-        self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
-        self.app.title = "Resumo Geral de Marketing"
+
+        app.title = "Resumo Geral de Marketing"
         self.graphs = {
             "leads_mes_graph": GraphUpdater(
                 "leads_mes_graph", "Leads por Mês Ano", "Mês", "Leads"
@@ -45,7 +48,7 @@ class DashboardApp:
         self.callbacks()
 
     def layout(self):
-        self.app.layout = dbc.Container(
+        app.layout = dbc.Container(
             [
                 html.H1(
                     "Resumo Geral de Marketing",
@@ -111,7 +114,7 @@ class DashboardApp:
         )
 
     def callbacks(self):
-        @self.app.callback(
+        @app.callback(
             Output("leads_mes_graph", "figure"), Input("leads_mes_graph", "id")
         )
         def update_leads_mes_graph(_):
@@ -121,7 +124,7 @@ class DashboardApp:
             leads = [item["leads"] for item in data]
             return self.graphs["leads_mes_graph"].update_graph(meses, leads)
 
-        @self.app.callback(
+        @app.callback(
             Output("valor_membro_graph", "figure"), Input("valor_membro_graph", "id")
         )
         def update_valor_membro_graph(_):
@@ -134,7 +137,7 @@ class DashboardApp:
             )
 
     def run(self):
-        self.app.run_server(debug=True)
+        app.run_server(debug=True)
 
 
 def get_leads_data():
