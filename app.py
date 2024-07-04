@@ -48,7 +48,7 @@ class DashboardApp:
         self.callbacks()
 
     def layout(self):
-        app.layout = dbc.Container(
+        layout = dbc.Container(
             [
                 html.H1(
                     "Resumo Geral de Marketing",
@@ -113,6 +113,8 @@ class DashboardApp:
             fluid=True,
         )
 
+        return layout
+
     def callbacks(self):
         @app.callback(
             Output("leads_mes_graph", "figure"), Input("leads_mes_graph", "id")
@@ -163,4 +165,5 @@ def get_valor_membro_data():
 
 if __name__ == "__main__":
     dashboard = DashboardApp()
+    app.layout = dashboard.layout()
     dashboard.run()
