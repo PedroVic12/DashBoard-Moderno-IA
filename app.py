@@ -46,7 +46,7 @@ class DashboardApp:
         self.callbacks()
 
     def layout(self):
-        layout = dbc.Container(
+        self.app.layout = dbc.Container(
             [
                 html.H1(
                     "Resumo Geral de Marketing",
@@ -110,8 +110,6 @@ class DashboardApp:
             ],
             fluid=True,
         )
-
-        return layout
 
     def callbacks(self):
         @self.app.callback(
