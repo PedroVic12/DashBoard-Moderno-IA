@@ -4,7 +4,6 @@ import io
 import dash
 import dash_ag_grid as dag
 import dash_bootstrap_components as dbc
-import dash_material_components as dmc
 import pandas as pd
 import plotly.express as px
 from dash import dcc, html, Input, Output, State
@@ -113,114 +112,44 @@ class DashboardApp:
         self.controller = DashboardController(self.data_model)
         self.chart_types = ["Bar Chart", "Line Chart", "Scatter Chart"]
 
-        self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
-
-        # Criando componentes do menu drawer
-        self.menu_items = [
-            dbc.NavLink("Página Inicial", href="#", active="exact"),
-            dbc.NavLink("Sobre", href="#", active="exact"),
-            dbc.NavLink("Contato", href="#", active="exact"),
-        ]
-        self.navbar = dbc.NavbarSimple(
-            children=[
-                dbc.NavItem(dbc.NavLink("Menu", id="open")),
-                dbc.NavItem(dbc.NavLink("Sair", id="logout")),
-                # self.menu_items,
-            ],
-            brand="Interactive Data Visualization",
-            brand_href="#",
-            color="dark",
-            dark=True,
-            fluid=True,
+        self.app = dash.Dash(
+            __name__,
+            external_stylesheets=[dbc.themes.CYBORG],
+            suppress_callback_exceptions=True,
         )
-        # self.drawer = dmc.Drawer(
-        #     [dbc.Nav(self.menu_items, vertical=True)],
-        #     id="menu-drawer",
-        #     is_open=False,
-        # )
 
         self.app.layout = html.Div(
             [
                 dcc.Location(id="url", refresh=False),
-                self.navbar,
-                # self.drawer,
-                dmc.Page(
-                    id="page-content",
+                dbc.NavbarSimple(
                     children=[
-                        dmc.Section(
-                            children=[
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
-                                            self.create_card("Card 1", "Content 1"),
-                                            md=3,
-                                        ),
-                                        dbc.Col(
-                                            self.create_card("Card 2", "Content 2"),
-                                            md=3,
-                                        ),
-                                        dbc.Col(
-                                            self.create_card("Card 3", "Content 3"),
-                                            md=3,
-                                        ),
-                                        dbc.Col(
-                                            self.create_card("Card 4", "Content 4"),
-                                            md=3,
-                                        ),
-                                    ],
-                                    className="mb-4",
-                                ),
-                                dbc.Row(
-                                    [
-                                        dbc.Col(
-                                            [
-                                                self.controller.file_upload_component.render(),
-                                                html.Div(
-                                                    id="table-container",
-                                                    children=[
-                                                        self.controller.data_table_component.render()
-                                                    ],
-                                                    style={
-                                                        "height": "500px",
-                                                        "overflow": "auto",
-                                                    },  # Adicionando barra de rolagem
-                                                ),
-                                            ],
-                                            md=6,
-                                        ),
-                                        dbc.Col(
-                                            [
-                                                dcc.Dropdown(
-                                                    id="chart-type",
-                                                    options=[
-                                                        {"label": i, "value": i}
-                                                        for i in self.chart_types
-                                                    ],
-                                                    value="Bar Chart",
-                                                ),
-                                                dcc.Graph(
-                                                    id="interactive-graph",
-                                                    style={
-                                                        "height": "500px",
-                                                    },  # Definindo altura do gráfico
-                                                ),
-                                                html.Div(id="insights"),
-                                            ],
-                                            md=6,
-                                        ),
-                                    ]
-                                ),
-                            ],
-                            cards=[
-                                {"title": "Card 1a"},
-                                {"title": "Card 1b"},
-                            ],
-                        )
+                        dbc.NavItem(dbc.NavLink("Home", href="/")),
+                        dbc.NavItem(dbc.NavLink("Page 1", href="/page-1")),
+                        dbc.NavItem(dbc.NavLink("Page 2", href="/page-2")),
+                        dbc.NavItem(dbc.NavLink("Sair", href="/logout")),
                     ],
-                    # style={"overflow": "auto"},  # Adicionando barra de rolagem à página
+                    brand="Interactive Data Visualization",
+                    brand_href="#",
+                    color="dark",
+                    dark=True,
+                    fluid=True,
                 ),
+                html.Div(id="page-content"),
             ]
         )
+
+        @self.app.callback(
+            Output("page-content", "children"), [Input("url", "pathname")]
+        )
+        def display_page(pathname):
+            if pathname == "/page-1":
+                return self.render_page_1()
+            elif pathname == "/page-2":
+                return self.render_page_2()
+            elif pathname == "/":
+                return self.render_home()
+            else:
+                return self.render_home()  # Página inicial como padrão
 
         @self.app.callback(
             Output("table-container", "children"),
@@ -244,16 +173,91 @@ class DashboardApp:
             insights = self.generate_insights(selected_chart)
             return fig, insights
 
-        # # Callback para abrir/fechar o menu drawer
-        # @self.app.callback(
-        #     Output("menu-drawer", "is_open"),
-        #     [Input("open-drawer", "n_clicks")],
-        #     [State("menu-drawer", "is_open")],
-        # )
-        # def toggle_drawer(n, is_open):
-        #     if n:
-        #         return not is_open
-        #     return is_open
+    def render_home(self):
+        return html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            self.create_card("Card 1", "Content 1"),
+                            md=3,
+                        ),
+                        dbc.Col(
+                            self.create_card("Card 2", "Content 2"),
+                            md=3,
+                        ),
+                        dbc.Col(
+                            self.create_card("Card 3", "Content 3"),
+                            md=3,
+                        ),
+                        dbc.Col(
+                            self.create_card("Card 4", "Content 4"),
+                            md=3,
+                        ),
+                    ],
+                    className="mb-4",
+                )
+            ]
+        )
+
+    def render_page_1(self):
+        return html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                self.controller.file_upload_component.render(),
+                                html.Div(
+                                    id="table-container",
+                                    children=[
+                                        self.controller.data_table_component.render()
+                                    ],
+                                    style={
+                                        "height": "500px",
+                                        "overflow": "auto",
+                                    },  # Adicionando barra de rolagem
+                                ),
+                            ],
+                            md=6,
+                        ),
+                        dbc.Col(
+                            [
+                                dcc.Dropdown(
+                                    id="chart-type",
+                                    options=[
+                                        {"label": i, "value": i}
+                                        for i in self.chart_types
+                                    ],
+                                    value="Bar Chart",
+                                ),
+                                dcc.Graph(
+                                    id="interactive-graph",
+                                    style={
+                                        "height": "500px"
+                                    },  # Definindo altura do gráfico
+                                ),
+                                html.Div(id="insights"),
+                            ],
+                            md=6,
+                        ),
+                    ]
+                ),
+            ]
+        )
+
+    def render_page_2(self):
+        return html.Div(
+            [
+                html.H1("Página 2"),
+                dcc.Dropdown(
+                    id="page-2-dropdown",
+                    options=[{"label": i, "value": i} for i in ["A", "B", "C"]],
+                    value="A",
+                ),
+                html.Div(id="page-2-content"),
+            ]
+        )
 
     def create_card(self, title, content):
         return dbc.Card(
@@ -312,8 +316,6 @@ class DashboardApp:
         return fig
 
     def generate_insights(self, selected_chart):
-        # Aqui você pode implementar lógica para gerar insights
-        # baseados no tipo de gráfico selecionado.
         return f"This {selected_chart} shows the trends in the number of AI systems across different domains over time. You can see that..."
 
     def run(self):
