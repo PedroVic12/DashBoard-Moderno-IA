@@ -10,6 +10,7 @@ from dash import dcc, html, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+from components import ComponentesDash
 
 
 # Modelo
@@ -147,6 +148,7 @@ class DashboardApp:
         self.data_model = DataModel()
         self.controller = DashboardController(self.data_model)
         self.chart_types = ["Bar Chart", "Line Chart", "Scatter Chart"]
+        self.componentes = ComponentesDash()
 
         self.app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 
@@ -203,10 +205,42 @@ class DashboardApp:
             return fig, insights
 
     def render_page_1(self):
+        # Variáveis
+        text = dmc.Typography(text="Content...", component="p", variant="body2")
+        text_2 = dmc.Typography(text="OLA MUNDO...", component="p", variant="body2")
+        image_path = "/home/pedrov/Documentos/GitHub/DashBoard-Moderno-IA/assets/graficos/teste1.png"
+
+        # Componentes
+        section_1 = dmc.Section(
+            id="section-1",
+            orientation="columns",
+            children=[text, text_2],
+            cards=[{"title": "Card 1a", "size": 3}, {"title": "Card 1b"}],
+        )
+
+        diretorio = "/home/pedrov/Documentos/GitHub/Engenharia-Eletrica-UFF/Iniciação Cientifica - Eng Eletrica UFF/evolution_rce_master/src/views/tabelas"
+        tabela2 = tabelaComponent(f"{diretorio}/tabela_consolidada.xlsx")
+
+        page = dmc.Page(
+            orientation="columns",
+            children=[
+                section_1,
+            ],
+        )
+
+        # Render
         return html.Div(
             [
-                html.H1("Page 1"),
-                html.P("Conteúdo da Página 1"),
+                html.H1("Resultados 12/07"),
+                dmc.Section(
+                    id="section-1",
+                    orientation="columns",
+                    children=[text, text_2],
+                    cards=[{"title": "Card 1a", "size": 3}, {"title": "Card 1b"}],
+                ),  # self.componentes.imagemDraw(image_path),
+                section_1,
+                html.H3("Tabela Teste Otimizacao"),
+                tabela2.render(),
             ]
         )
 
