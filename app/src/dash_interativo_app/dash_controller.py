@@ -7,8 +7,29 @@ class DataModel:
         self.df = None
 
     def load_data(self, contents, filename):
-        # Lógica para carregar os dados
+        # Logic to load data from CSV or Excel file
+        # This is a placeholder implementation
+        self.df = pd.read_csv(filename)
         return True
+
+    def get_leads_data(self):
+        # Placeholder implementation
+        return [
+        {"mes": "Jul-19", "leads": 8852},
+        {"mes": "Ago-19", "leads": 8357},
+        {"mes": "Set-19", "leads": 8657},
+        {"mes": "Out-19", "leads": 11084},
+        {"mes": "Nov-19", "leads": 12489},
+        {"mes": "Dez-19", "leads": 996},
+        ]
+
+    def get_valor_membro_data(self):
+        # Placeholder implementation
+        return [
+        {"tipo_membro": "Black", "valor_venda": 15.27},
+        {"tipo_membro": "Platinum", "valor_venda": 31.35},
+        {"tipo_membro": "Gold", "valor_venda": 53.26},
+        ]
 
 
 class GraphUpdater:
@@ -38,28 +59,11 @@ class GraphUpdater:
 class DashboardController:
     def __init__(self, data_model):
         self.data_model = data_model
-        self.file_upload_component = FileUploadComponent("upload-data")
-        self.data_table_component = DataTableComponent("data-table")
-        self.chart_types = ["Bar Chart", "Line Chart", "Scatter Chart"]
-
-    def update_table(self, contents, filename):
-        if contents is not None:
-            if self.data_model.load_data(contents, filename):
-                return self.data_table_component.render(self.data_model.df)
-            else:
-                return html.Div("Erro ao carregar o arquivo. Verifique o formato.")
-        else:
-            return html.Div(
-                "Nenhum arquivo selecionado. Arraste e solte ou selecione um arquivo CSV ou Excel."
-            )
-
-    def create_card(self, title, content):
-        return CardComponent(title, content).render()
 
     def create_chart(self, selected_chart):
-        if self.data_model.df.empty:
+        if self.data_model.df is None or self.data_model.df.empty:
             return {}
-        fig = None
+        
         if selected_chart == "Bar Chart":
             fig = px.bar(
                 self.data_model.df,
@@ -81,6 +85,8 @@ class DashboardController:
                 y=self.data_model.df.columns[1],
                 color=self.data_model.df.columns[2],
             )
+        else:
+            return {}
 
         fig.update_layout(
             title=f"{selected_chart} of AI Systems by Domain",
