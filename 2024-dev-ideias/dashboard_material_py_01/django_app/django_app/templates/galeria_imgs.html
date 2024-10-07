@@ -1,0 +1,60 @@
+<!-- django_app/main/templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dash-material-components/1.0.1/dmc.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dash-material-components/1.0.1/dmc.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Dashboard</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{% url 'home' %}">Imagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:8050/">Dashboard de Dados</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Imagens Carregadas</h1>
+        <a href="{% url 'upload_image' %}">Fazer Upload de Nova Imagem</a>
+        <div>
+            {% for image in images %}
+            <img src="{{ image.image.url }}" alt="Imagem" style="max-width: 300px; margin: 10px;">
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if images.has_previous %}
+                <a href="?page=1">&laquo; primeira</a>
+                <a href="?page={{ images.previous_page_number }}">anterior</a>
+                {% endif %}
+
+                <span class="current">
+                    Página {{ images.number }} de {{ images.paginator.num_pages }}.
+                </span>
+
+                {% if images.has_next %}
+                <a href="?page={{ images.next_page_number }}">próxima</a>
+                <a href="?page={{ images.paginator.num_pages }}">última &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</body>
+
+</html>

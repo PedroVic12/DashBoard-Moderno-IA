@@ -1,0 +1,21 @@
+<!-- django_app/templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Imagens</title>
+</head>
+
+<body>
+    <h1>Imagens Carregadas</h1>
+    <a href="{% url 'upload_image' %}">Fazer Upload de Nova Imagem</a>
+    <div>
+        {% for image in images %}
+        <img src="{{ image.image.url }}" alt="Imagem" style="max-width: 300px; margin: 10px;">
+        {% endfor %}
+    </div>
+</body>
+
+</html>
