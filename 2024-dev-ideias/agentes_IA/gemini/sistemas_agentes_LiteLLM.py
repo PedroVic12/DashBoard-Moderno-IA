@@ -59,7 +59,7 @@ class Cook:
             },
         }
         response = self.llm_jarvis.get_response(messages, response_schema)
-        return [recipe["recipe_name"] for recipe in response]
+        return [recipe["recipe_name"] for recipe in response]q
 
 
 # Configuração do ambiente
