@@ -2,7 +2,7 @@ import google.generativeai as genai
 import os
 
 # Configure the Gemini API
-GOOGLE_API_KEY = "AIzaSyDAPQnsTQxOL5HJ0zpjdYZKxbQ-ekmi3S0"
+GOOGLE_API_KEY = "AIzaSyAxDCA2uS0OGqDZkaGJ0C-TNPQcllywwhg"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the model
@@ -60,52 +60,57 @@ class Crew:
             results.append(result)
         return results
 
-# Define agents
-buscador = Agent(
-    role="Pesquisador",
-    goal="Pesquisar informações relevantes sobre o assunto",
-    backstory="Você é um pesquisador experiente e está sempre em busca de informações relevantes."
-)
 
-redator = Agent(
-    role="Redator",
-    goal="Escrever um artigo informativo sobre o assunto",
-    backstory="Você é um redator experiente e está sempre buscando escrita limpa e facil de entendimento."
-)
+def runCrewAI_PV():
 
-# Define tasks
-pesquisa = Task(
-    description="Pesquisar sobre {tema} com as fontes mais recentes e confiáveis",
-    agent=buscador,
-    expected_output="Um relatório  com parágrafos contendo Introdução, Desenvolvimento, e Conclusão",
-    attempts=2
-)
+    # Define agents
+    buscador = Agent(
+        role="Pesquisador",
+        goal="Pesquisar informações relevantes sobre o assunto",
+        backstory="Você é um pesquisador experiente e está sempre em busca de informações relevantes."
+    )
 
-escrita = Task(
-    description="Escrever um artigo em formato markdown sobre {tema} com base na pesquisa realizada",
-    agent=redator,
-    expected_output="Arquivo markdown bem escrito e objetivo de forma didática",
-    attempts=2
-)
+    redator = Agent(
+        role="Redator",
+        goal="Escrever um artigo informativo sobre o assunto",
+        backstory="Você é um redator experiente e está sempre buscando escrita limpa e facil de entendimento."
+    )
 
-# Create the crew
-equipe = Crew(
-    agents=[buscador, redator],
-    tasks=[pesquisa, escrita]
-)
+    # Define tasks
+    pesquisa = Task(
+        description="Pesquisar sobre {tema} com as fontes mais recentes e confiáveis",
+        agent=buscador,
+        expected_output="Um relatório  com parágrafos contendo Introdução, Desenvolvimento, e Conclusão",
+        attempts=2
+    )
 
-# Define the theme
-tema = "Empresas de delivery em campo grande RJ "
-entradas = {"tema": tema}
+    escrita = Task(
+        description="Escrever um artigo em formato markdown sobre {tema} com base na pesquisa realizada",
+        agent=redator,
+        expected_output="Arquivo markdown bem escrito e objetivo de forma didática",
+        attempts=2
+    )
 
-# Execute tasks
-results = equipe.kickoff(inputs=entradas)
+    # Create the crew
+    equipe = Crew(
+        agents=[buscador, redator],
+        tasks=[pesquisa, escrita]
+    )
 
-# Display results and generate markdown
-print("\n\nResultados das Tarefas da Equipe:")
-for i, result in enumerate(results):
-    print(result)
-    print("\n---\n")
-    if i == 1:  # Generate markdown for the second task (writing task)
-        redator.gerar_markdown(result)
+    # Define the theme
+    tema = "Empresas de delivery em campo grande RJ que possuem email, telefone e site no google maps"
+    entradas = {"tema": tema}
 
+    # Execute tasks
+    results = equipe.kickoff(inputs=entradas)
+
+    # Display results and generate markdown
+    print("\n\nResultados das Tarefas da Equipe:")
+    for i, result in enumerate(results):
+        print(result)
+        print("\n---\n")
+        if i == 1:  # Generate markdown for the second task (writing task)
+            redator.gerar_markdown(result)
+
+
+runCrewAI_PV()

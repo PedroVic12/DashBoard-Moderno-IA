@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def main(page: ft.Page):
     # Configurações da página
-    page.title = "Dashboard de Agentes IA"
+    page.title = "Dashboard de Agentes IA 2024"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 0
     page.spacing = 0
