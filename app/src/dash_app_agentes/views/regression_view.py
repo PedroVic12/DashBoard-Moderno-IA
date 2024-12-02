@@ -2,13 +2,43 @@ import flet as ft
 import pandas as pd
 from agents.regression_agent import RegressionAgent
 
-class RegressionView:
-    def __init__(self):
+class RegressionView(ft.UserControl):
+    def __init__(self, page: ft.Page):
+        super().__init__()
+        self.page = page
         self.agent = RegressionAgent()
         self.data_table = None
         self.x_dropdown = None
         self.y_dropdown = None
         self.result_text = None
+        
+    def setup_view(self):
+        self.data_table = ft.DataTable(
+            columns=[],
+            rows=[],
+            border=ft.border.all(2, "grey"),
+            border_radius=10,
+            vertical_lines=ft.border.BorderSide(3, "grey"),
+            horizontal_lines=ft.border.BorderSide(1, "grey"),
+        )
+        
+        self.x_dropdown = ft.Dropdown(
+            label="Select X variable",
+            width=200,
+            disabled=True
+        )
+        
+        self.y_dropdown = ft.Dropdown(
+            label="Select Y variable",
+            width=200,
+            disabled=True
+        )
+        
+        self.result_text = ft.Markdown(
+            "",
+            selectable=True,
+            extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
+        )
         
     def build(self):
         return ft.Column(
@@ -39,11 +69,7 @@ class RegressionView:
                         icon=ft.icons.UPLOAD_FILE,
                         on_click=self.pick_files
                     ),
-                    ft.DataTable(
-                        columns=[],
-                        rows=[],
-                        ref=self.data_table,
-                    ) if self.data_table else ft.Text("No data loaded"),
+                    self.data_table if self.data_table else ft.Text("No data loaded"),
                 ]
             ),
             padding=20,
@@ -53,18 +79,6 @@ class RegressionView:
         )
     
     def build_model_controls(self):
-        self.x_dropdown = ft.Dropdown(
-            label="Select X variable",
-            width=200,
-            disabled=True
-        )
-        
-        self.y_dropdown = ft.Dropdown(
-            label="Select Y variable",
-            width=200,
-            disabled=True
-        )
-        
         return ft.Container(
             content=ft.Column(
                 controls=[
@@ -90,12 +104,6 @@ class RegressionView:
         )
     
     def build_results(self):
-        self.result_text = ft.Markdown(
-            "",
-            selectable=True,
-            extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
-        )
-        
         return ft.Container(
             content=ft.Column(
                 controls=[
@@ -113,8 +121,8 @@ class RegressionView:
         file_picker = ft.FilePicker(
             on_result=self.handle_file_picked
         )
-        e.page.overlay.append(file_picker)
-        e.page.update()
+        self.page.overlay.append(file_picker)
+        self.page.update()
         await file_picker.pick_files(
             allowed_extensions=["csv", "xlsx", "xls"],
             allow_multiple=False
@@ -135,7 +143,7 @@ class RegressionView:
             if self.agent.data is not None:
                 self.update_data_table()
             
-            e.page.update()
+            self.page.update()
     
     def update_data_table(self):
         df = self.agent.data
@@ -148,10 +156,8 @@ class RegressionView:
             cells = [ft.DataCell(ft.Text(str(val))) for val in row]
             rows.append(ft.DataRow(cells=cells))
             
-        self.data_table = ft.DataTable(
-            columns=columns,
-            rows=rows,
-        )
+        self.data_table.columns = columns
+        self.data_table.rows = rows
     
     def train_model(self, e):
         if self.x_dropdown.value and self.y_dropdown.value:
@@ -181,7 +187,7 @@ X = 30 → Y = {self.agent.predict(30):.2f}
 ```
 """
             self.result_text.value = result_md
-            e.page.update()
+            self.page.update()
     
     def go_back(self, e):
         # This will be handled by the main app

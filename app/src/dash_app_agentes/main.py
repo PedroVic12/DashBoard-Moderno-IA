@@ -1,6 +1,6 @@
 import flet as ft
 from views.regression_view import RegressionView
-import os
+from views.ml_view import MLView
 
 class DashboardApp:
     def __init__(self):
@@ -8,134 +8,74 @@ class DashboardApp:
         
     def initialize(self, page: ft.Page):
         self.page = page
-        self.page.title = "AI Agents Dashboard 2024"
+        self.page.title = "AI Agents Dashboard"
         self.page.theme_mode = ft.ThemeMode.DARK
         self.page.padding = 0
         self.setup_layout()
         
     def setup_layout(self):
-        # Side Navigation
-        self.nav_rail = ft.NavigationRail(
+        self.navigation_rail = ft.NavigationRail(
             selected_index=0,
             label_type=ft.NavigationRailLabelType.ALL,
             min_width=100,
             min_extended_width=200,
-            leading=ft.Icon(ft.icons.DASHBOARD_ROUNDED),
+            leading=ft.FloatingActionButton(icon=ft.icons.CREATE, text="AI Agents"),
             group_alignment=-0.9,
             destinations=[
                 ft.NavigationRailDestination(
-                    icon=ft.icons.HOME_OUTLINED,
-                    selected_icon=ft.icons.HOME_ROUNDED,
-                    label="Home",
+                    icon=ft.icons.SHOW_CHART,
+                    selected_icon=ft.icons.SHOW_CHART,
+                    label="Regressão",
                 ),
                 ft.NavigationRailDestination(
-                    icon=ft.icons.SETTINGS_OUTLINED,
-                    selected_icon=ft.icons.SETTINGS_ROUNDED,
+                    icon=ft.icons.SCIENCE,
+                    selected_icon=ft.icons.SCIENCE,
+                    label="ML Agents",
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.icons.SETTINGS,
+                    selected_icon=ft.icons.SETTINGS,
                     label="Settings",
                 ),
             ],
-            on_change=self.nav_change,
+            on_change=self.navigation_change,
         )
         
-        # Main content area
-        self.content_area = ft.Container(
-            content=self.build_home_view(),
-            expand=True,
-            padding=20,
-        )
-        
-        # Main layout
         self.page.add(
             ft.Row(
                 [
-                    self.nav_rail,
+                    self.navigation_rail,
                     ft.VerticalDivider(width=1),
-                    self.content_area,
+                    ft.Column([self.get_view(0)], expand=True),
                 ],
                 expand=True,
             )
         )
     
-    def build_home_view(self):
-        return ft.Column(
-            controls=[
-                ft.Text("AI Agents", size=32, weight=ft.FontWeight.BOLD),
-                ft.ResponsiveRow(
-                    controls=[
-                        # Regression Agent Card
-                        ft.Container(
-                            col={"sm": 12, "md": 6, "lg": 4},
-                            content=ft.Card(
-                                content=ft.Container(
-                                    content=ft.Column(
-                                        controls=[
-                                            ft.ListTile(
-                                                leading=ft.Icon(ft.icons.ANALYTICS_ROUNDED, size=40),
-                                                title=ft.Text("Regression Agent", size=20),
-                                                subtitle=ft.Text("Linear regression analysis and prediction"),
-                                            ),
-                                            ft.Row(
-                                                [
-                                                    ft.TextButton("Open", on_click=self.open_regression_view),
-                                                    ft.TextButton("Export"),
-                                                ],
-                                                alignment=ft.MainAxisAlignment.END,
-                                            ),
-                                        ],
-                                    ),
-                                    padding=10,
-                                ),
-                            ),
-                            padding=10,
-                        ),
-                        # Add more agent cards here
-                    ],
-                ),
-            ],
-            scroll=ft.ScrollMode.AUTO,
+    def get_view(self, index: int) -> ft.View:
+        if index == 0:
+            return RegressionView(self.page)
+        elif index == 1:
+            return MLView(self.page)
+        elif index == 2:
+            return ft.Text("Settings View")
+            
+    def navigation_change(self, e):
+        self.page.clean()
+        self.page.add(
+            ft.Row(
+                [
+                    self.navigation_rail,
+                    ft.VerticalDivider(width=1),
+                    ft.Column([self.get_view(e.control.selected_index)], expand=True),
+                ],
+                expand=True,
+            )
         )
-    
-    def build_settings_view(self):
-        return ft.Column(
-            controls=[
-                ft.Text("Settings", size=32, weight=ft.FontWeight.BOLD),
-                ft.Container(
-                    content=ft.Column(
-                        controls=[
-                            ft.TextField(label="API Key", password=True),
-                            ft.Dropdown(
-                                label="Theme",
-                                options=[
-                                    ft.dropdown.Option("Light"),
-                                    ft.dropdown.Option("Dark"),
-                                ],
-                            ),
-                            ft.ElevatedButton("Save Settings"),
-                        ],
-                    ),
-                    padding=20,
-                    bgcolor=ft.colors.SURFACE_VARIANT,
-                    border_radius=10,
-                ),
-            ],
-        )
-    
-    def nav_change(self, e):
-        if e.control.selected_index == 0:  # Home
-            self.content_area.content = self.build_home_view()
-        elif e.control.selected_index == 1:  # Settings
-            self.content_area.content = self.build_settings_view()
-        self.page.update()
-    
-    def open_regression_view(self, e):
-        if not self.current_view:
-            self.current_view = RegressionView()
-        self.content_area.content = self.current_view.build()
-        self.page.update()
 
-def main():
+def main(page: ft.Page):
     app = DashboardApp()
-    ft.app(target=app.initialize)
+    app.initialize(page)
 
 if __name__ == "__main__":
-    main()
+    ft.app(target=main)
