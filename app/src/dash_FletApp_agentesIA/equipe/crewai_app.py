@@ -1,5 +1,5 @@
 import flet as ft
-from startup_equipes_agentesIA_pv import Agent, Task, Crew
+from startup_equipes_agentesIA_pv import Agent, Task, Crew, runCrewAI_PV
 import os
 import logging
 
@@ -59,18 +59,35 @@ class CrewAIView(ft.UserControl):
             options=[]
         )
         
-        # Listas de Agentes e Tarefas
+        # Listas de Agentes e Tarefas em Containers com scroll
         self.agents_list = ft.ListView(
             expand=1,
             spacing=10,
-            padding=20,
-            height=200
+            height=200,
+            auto_scroll=True
         )
         
         self.tasks_list = ft.ListView(
             expand=1,
             spacing=10,
-            padding=20,
+            height=200,
+            auto_scroll=True
+        )
+        
+        # Containers com scroll para as listas
+        self.agents_container = ft.Container(
+            content=self.agents_list,
+            border=ft.border.all(1, ft.colors.OUTLINE),
+            border_radius=10,
+            padding=10,
+            height=200
+        )
+        
+        self.tasks_container = ft.Container(
+            content=self.tasks_list,
+            border=ft.border.all(1, ft.colors.OUTLINE),
+            border_radius=10,
+            padding=10,
             height=200
         )
         
@@ -93,11 +110,21 @@ class CrewAIView(ft.UserControl):
             on_click=self.execute_tasks
         )
         
+        # FloatingActionButton para rodar equipe de agentes
+        self.run_crew_btn = ft.FloatingActionButton(
+            text="Rodar Equipe de Agentes",
+            icon=ft.icons.ROCKET_LAUNCH,
+            on_click=self.run_default_crew,
+            bgcolor=ft.colors.BLUE_700,
+            height=60
+        )
+        
         # Container para o resultado
         self.result_text = ft.Text()
         
     def build(self):
-        return ft.Container(
+        # Container principal com scroll
+        main_content = ft.Container(
             content=ft.Column([
                 ft.Text("Gerenciador de Agentes IA", size=30, weight=ft.FontWeight.BOLD),
                 
@@ -109,7 +136,7 @@ class CrewAIView(ft.UserControl):
                 
                 ft.Divider(),
                 ft.Text("Agentes Criados:", size=16),
-                self.agents_list,
+                self.agents_container,
                 
                 ft.Text("Adicionar Tarefa", size=20, weight=ft.FontWeight.W_500),
                 self.task_description,
@@ -120,7 +147,7 @@ class CrewAIView(ft.UserControl):
                 
                 ft.Divider(),
                 ft.Text("Tarefas Criadas:", size=16),
-                self.tasks_list,
+                self.tasks_container,
                 
                 ft.Text("Tema da Pesquisa", size=20, weight=ft.FontWeight.W_500),
                 self.theme_field,
@@ -129,10 +156,22 @@ class CrewAIView(ft.UserControl):
                 
                 ft.Divider(),
                 self.result_text
-            ], 
-            scroll=ft.ScrollMode.AUTO),
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            spacing=20),
+            expand=True,
             padding=40
         )
+        
+        # Stack para combinar o conteúdo principal com o FloatingActionButton
+        return ft.Stack([
+            main_content,
+            ft.Container(
+                content=self.run_crew_btn,
+                alignment=ft.alignment.bottom_right,
+                padding=20
+            )
+        ])
     
     def add_agent(self, e):
         try:
@@ -144,7 +183,12 @@ class CrewAIView(ft.UserControl):
             
             self.agents.append(agent)
             self.agents_list.controls.append(
-                ft.Text(f"Agente: {agent.role} - {agent.goal}")
+                ft.Container(
+                    content=ft.Text(f"Agente: {agent.role} - {agent.goal}"),
+                    bgcolor=ft.colors.SURFACE_VARIANT,
+                    padding=10,
+                    border_radius=5
+                )
             )
             
             # Atualiza dropdown
@@ -187,7 +231,12 @@ class CrewAIView(ft.UserControl):
             
             self.tasks.append(task)
             self.tasks_list.controls.append(
-                ft.Text(f"Tarefa para {agent.role}: {task.description[:50]}...")
+                ft.Container(
+                    content=ft.Text(f"Tarefa para {agent.role}: {task.description[:50]}..."),
+                    bgcolor=ft.colors.SURFACE_VARIANT,
+                    padding=10,
+                    border_radius=5
+                )
             )
             
             # Limpa campos
@@ -204,6 +253,34 @@ class CrewAIView(ft.UserControl):
         except Exception as ex:
             self.page.show_snack_bar(
                 ft.SnackBar(content=ft.Text(f"Erro ao adicionar tarefa: {str(ex)}"))
+            )
+    
+    def run_default_crew(self, e):
+        try:
+            self.result_text.value = "Executando equipe padrão..."
+            self.update()
+            
+            runCrewAI_PV()
+            
+            self.result_text.value = "Equipe padrão executada com sucesso!"
+            self.update()
+            
+            # Adiciona botão de download se o arquivo foi gerado
+            if os.path.exists("documento.md"):
+                download_btn = ft.ElevatedButton(
+                    "Baixar Arquivo Markdown",
+                    icon=ft.icons.DOWNLOAD,
+                    on_click=lambda _: self.download_file("documento.md")
+                )
+                self.page.add(download_btn)
+            
+            self.page.show_snack_bar(
+                ft.SnackBar(content=ft.Text("Equipe padrão executada com sucesso!"))
+            )
+            
+        except Exception as ex:
+            self.page.show_snack_bar(
+                ft.SnackBar(content=ft.Text(f"Erro ao executar equipe: {str(ex)}"))
             )
     
     def execute_tasks(self, e):
@@ -286,6 +363,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.window.width = 800
     page.window.height = 1000
+    page.scroll = ft.ScrollMode.AUTO
     
     # Adiciona a view
     crew_view = CrewAIView(page)

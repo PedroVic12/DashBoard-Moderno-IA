@@ -32,7 +32,7 @@ class Agent:
         
         try:
             # Create markdown file
-            with open('documento.md', 'w', encoding='utf-8') as f:
+            with open('./documento.md', 'w', encoding='utf-8') as f:
                 f.write(formatted_content)
             print("Relatório gerado em 'documento.md'.")
         except Exception as e:
